@@ -33,6 +33,16 @@ defmodule Day2 do
     calculate_checksum()
   end
 
+  def puzzle2 do
+    File.stream!("id_list.txt")
+    |> Enum.map(fn line ->
+      line
+      |> String.trim()
+    end)
+    |> find_targets()
+    |> figure_commons()
+  end
+
   defp check_duplicates(list) do
     case contains_repeats?(list, 2) do
       true -> increment_ets(:dups)
@@ -78,5 +88,28 @@ defmodule Day2 do
       |> Keyword.fetch!(:trips)
 
     dups * trips
+  end
+
+  defp find_targets(list) do
+    do_find_targets(list)
+  end
+
+  defp do_find_targets([ _ | []]), do: nil
+  defp do_find_targets([current | remaining ]) do
+    remaining
+    |> Enum.find(nil, fn val ->
+      case String.myers_difference(val, current) do
+        [eq: _, del: _, ins: _, eq: _] -> true
+        _ -> false
+      end
+    end)
+    |> case do
+         nil -> do_find_targets(remaining)
+         _ = found -> String.myers_difference(found, current)
+       end
+  end
+
+  defp figure_commons([eq: first, del: _, ins: _, eq: last]) do
+    first <> last
   end
 end
